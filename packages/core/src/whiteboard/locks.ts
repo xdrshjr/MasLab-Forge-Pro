@@ -24,37 +24,39 @@ export class FileLockManager {
    * @returns Lock ID
    * @throws Error if whiteboard is already locked by another agent
    */
-  async acquireLock(whiteboardPath: string, agentId: string): Promise<string> {
-    // Clean up expired locks first
-    this.cleanupExpiredLocks()
+  acquireLock(whiteboardPath: string, agentId: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // Clean up expired locks first
+      this.cleanupExpiredLocks()
 
-    // Check if already locked
-    const existingLock = this.locks.get(whiteboardPath)
+      // Check if already locked
+      const existingLock = this.locks.get(whiteboardPath)
 
-    if (existingLock) {
-      // Reentrant lock: same agent can extend the lock
-      if (existingLock.agentId === agentId) {
-        existingLock.expiresAt = Date.now() + this.lockTimeout
-        return existingLock.lockId
-      } else {
-        throw new Error(
-          `Whiteboard ${whiteboardPath} is locked by ${existingLock.agentId}`
-        )
+      if (existingLock) {
+        // Reentrant lock: same agent can extend the lock
+        if (existingLock.agentId === agentId) {
+          existingLock.expiresAt = Date.now() + this.lockTimeout
+          resolve(existingLock.lockId)
+          return
+        } else {
+          reject(new Error(`Whiteboard ${whiteboardPath} is locked by ${existingLock.agentId}`))
+          return
+        }
       }
-    }
 
-    // Acquire new lock
-    const lockId = randomUUID()
-    const lock: FileLock = {
-      lockId,
-      whiteboardPath,
-      agentId,
-      acquiredAt: Date.now(),
-      expiresAt: Date.now() + this.lockTimeout
-    }
+      // Acquire new lock
+      const lockId = randomUUID()
+      const lock: FileLock = {
+        lockId,
+        whiteboardPath,
+        agentId,
+        acquiredAt: Date.now(),
+        expiresAt: Date.now() + this.lockTimeout,
+      }
 
-    this.locks.set(whiteboardPath, lock)
-    return lockId
+      this.locks.set(whiteboardPath, lock)
+      resolve(lockId)
+    })
   }
 
   /**

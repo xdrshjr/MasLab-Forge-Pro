@@ -6,17 +6,14 @@
  */
 
 import { promises as fs } from 'fs'
+import { mkdirSync } from 'fs'
 import path from 'path'
 import { EventEmitter } from 'events'
 import { WhiteboardPermissionChecker } from './permissions.js'
 import { FileLockManager } from './locks.js'
 import { OptimisticLockManager } from './optimistic-lock.js'
 import { WhiteboardTemplates } from './templates.js'
-import {
-  WhiteboardType,
-  type WhiteboardConfig,
-  type WhiteboardMetadata
-} from './types.js'
+import { WhiteboardType, type WhiteboardConfig, type WhiteboardMetadata } from './types.js'
 import type { AgentRegistry } from './permissions.js'
 
 /**
@@ -59,7 +56,6 @@ export class WhiteboardSystem extends EventEmitter {
 
     try {
       // Create directories synchronously during initialization
-      const mkdirSync = require('fs').mkdirSync
       mkdirSync(whiteboardsDir, { recursive: true })
       mkdirSync(locksDir, { recursive: true })
     } catch (error) {
@@ -77,18 +73,12 @@ export class WhiteboardSystem extends EventEmitter {
    * @returns Whiteboard content
    * @throws Error if permission denied or file error
    */
-  async read(
-    type: WhiteboardType,
-    agentId: string,
-    ownerId?: string
-  ): Promise<string> {
+  async read(type: WhiteboardType, agentId: string, ownerId?: string): Promise<string> {
     const whiteboardPath = this.resolveWhiteboardPath(type, ownerId)
 
     // Permission check
     if (!this.permissionChecker.canRead(agentId, { type, ownerId })) {
-      throw new Error(
-        `Permission denied: ${agentId} cannot read ${whiteboardPath}`
-      )
+      throw new Error(`Permission denied: ${agentId} cannot read ${whiteboardPath}`)
     }
 
     // Check cache
@@ -102,8 +92,8 @@ export class WhiteboardSystem extends EventEmitter {
       const content = await fs.readFile(whiteboardPath, 'utf-8')
       this.cache.set(whiteboardPath, { content, cachedAt: Date.now() })
       return content
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
         // File doesn't exist, return template
         return this.getTemplate(type)
       }
@@ -130,9 +120,7 @@ export class WhiteboardSystem extends EventEmitter {
 
     // Permission check
     if (!this.permissionChecker.canWrite(agentId, { type, ownerId })) {
-      throw new Error(
-        `Permission denied: ${agentId} cannot write ${whiteboardPath}`
-      )
+      throw new Error(`Permission denied: ${agentId} cannot write ${whiteboardPath}`)
     }
 
     // Acquire lock
@@ -155,7 +143,7 @@ export class WhiteboardSystem extends EventEmitter {
       this.emit('whiteboard:updated', {
         path: whiteboardPath,
         updatedBy: agentId,
-        version: currentVersion + 1
+        version: currentVersion + 1,
       })
     } finally {
       this.lockManager.releaseLock(lockId)
@@ -181,9 +169,7 @@ export class WhiteboardSystem extends EventEmitter {
 
     // Permission check
     if (!this.permissionChecker.canAppend(agentId, { type, ownerId })) {
-      throw new Error(
-        `Permission denied: ${agentId} cannot append to ${whiteboardPath}`
-      )
+      throw new Error(`Permission denied: ${agentId} cannot append to ${whiteboardPath}`)
     }
 
     const lockId = await this.lockManager.acquireLock(whiteboardPath, agentId)
@@ -216,10 +202,7 @@ export class WhiteboardSystem extends EventEmitter {
    * @returns Absolute file path
    * @throws Error if invalid parameters
    */
-  private resolveWhiteboardPath(
-    type: WhiteboardType,
-    ownerId?: string
-  ): string {
+  private resolveWhiteboardPath(type: WhiteboardType, ownerId?: string): string {
     const whiteboardsDir = path.join(this.config.workspacePath, 'whiteboards')
 
     switch (type) {
@@ -240,10 +223,10 @@ export class WhiteboardSystem extends EventEmitter {
           throw new Error('ownerId required for bottom-layer whiteboard')
         }
         return path.join(whiteboardsDir, `bottom-layer-${ownerId}.md`)
-
-      default:
-        throw new Error(`Unknown whiteboard type: ${type}`)
     }
+
+    // This should never be reached due to TypeScript exhaustiveness checking
+    throw new Error(`Unknown whiteboard type: ${String(type)}`)
   }
 
   /**
@@ -272,10 +255,7 @@ export class WhiteboardSystem extends EventEmitter {
    * @param ownerId - Owner agent ID (for layer-specific whiteboards)
    * @returns Whiteboard metadata or undefined
    */
-  getMetadata(
-    type: WhiteboardType,
-    ownerId?: string
-  ): WhiteboardMetadata | undefined {
+  getMetadata(type: WhiteboardType, ownerId?: string): WhiteboardMetadata | undefined {
     const whiteboardPath = this.resolveWhiteboardPath(type, ownerId)
     return this.optimisticLockManager.getMetadata(whiteboardPath)
   }

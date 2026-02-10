@@ -7,6 +7,7 @@
 
 import { promises as fs } from 'fs'
 import type { WhiteboardMetadata } from './types.js'
+import { WhiteboardType } from './types.js'
 
 /**
  * Optimistic lock manager
@@ -45,26 +46,23 @@ export class OptimisticLockManager {
     const currentVersion = this.getVersion(whiteboardPath)
 
     if (currentVersion !== expectedVersion) {
-      throw new Error(
-        `Version conflict: expected ${expectedVersion}, got ${currentVersion}`
-      )
+      throw new Error(`Version conflict: expected ${expectedVersion}, got ${currentVersion}`)
     }
 
     // Write file
     await fs.writeFile(whiteboardPath, content, 'utf-8')
 
     // Update metadata
+    const whiteboardType = this.inferTypeFromPath(whiteboardPath)
     this.metadata.set(whiteboardPath, {
       path: whiteboardPath,
-      type: this.inferTypeFromPath(whiteboardPath),
+      type: whiteboardType,
       version: currentVersion + 1,
       lastModifiedBy: agentId,
-      lastModifiedAt: Date.now()
+      lastModifiedAt: Date.now(),
     })
 
-    console.log(
-      `Whiteboard updated: ${whiteboardPath} v${currentVersion + 1} by ${agentId}`
-    )
+    console.log(`Whiteboard updated: ${whiteboardPath} v${currentVersion + 1} by ${agentId}`)
   }
 
   /**
@@ -85,12 +83,13 @@ export class OptimisticLockManager {
    */
   initializeMetadata(whiteboardPath: string, agentId: string): void {
     if (!this.metadata.has(whiteboardPath)) {
+      const whiteboardType = this.inferTypeFromPath(whiteboardPath)
       this.metadata.set(whiteboardPath, {
         path: whiteboardPath,
-        type: this.inferTypeFromPath(whiteboardPath),
+        type: whiteboardType,
         version: 0,
         lastModifiedBy: agentId,
-        lastModifiedAt: Date.now()
+        lastModifiedAt: Date.now(),
       })
     }
   }
@@ -99,16 +98,16 @@ export class OptimisticLockManager {
    * Infer whiteboard type from file path
    * Helper method to determine type based on path pattern
    */
-  private inferTypeFromPath(path: string): any {
-    if (path.includes('global-whiteboard')) {
-      return 'global'
-    } else if (path.includes('top-layer')) {
-      return 'top'
-    } else if (path.includes('mid-layer')) {
-      return 'mid'
-    } else if (path.includes('bottom-layer')) {
-      return 'bottom'
+  private inferTypeFromPath(filePath: string): WhiteboardType {
+    if (filePath.includes('global-whiteboard')) {
+      return WhiteboardType.GLOBAL
+    } else if (filePath.includes('top-layer')) {
+      return WhiteboardType.TOP_LAYER
+    } else if (filePath.includes('mid-layer')) {
+      return WhiteboardType.MID_LAYER
+    } else if (filePath.includes('bottom-layer')) {
+      return WhiteboardType.BOTTOM_LAYER
     }
-    return 'global'
+    return WhiteboardType.GLOBAL
   }
 }
