@@ -196,7 +196,7 @@ describe('AgentRepository', () => {
     agentRepo.insert(agent1, 'task-1')
     agentRepo.insert(agent2, 'task-1')
 
-    const topAgents = agentRepo.getByLayer('task-1', 'top')
+    const topAgents = agentRepo.getByLayer('top', 'task-1')
     expect(topAgents).toHaveLength(1)
     expect(topAgents[0].id).toBe('agent-1')
   })
