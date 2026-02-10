@@ -14,6 +14,9 @@ export * from './persistence/index.js'
 // Logging system
 export * from './logging/index.js'
 
+// Communication system
+export * from './communication/index.js'
+
 // Version information
 export const VERSION = '0.1.0'
 

@@ -213,3 +213,15 @@ Comprehensive planning documents are in `docs/plans/multi-agent-governance-frame
 - `todo/` - Task breakdown for implementation
 
 Refer to these documents when implementing features to ensure alignment with the architectural vision.
+
+## Project Index
+
+This project has a pre-generated index for quick codebase understanding.
+
+- **Location:** `.claude-index/index.md`
+- **Last Updated:** 2026-02-11
+- **Contents:** Project overview, feature map, file index, exported symbols, module dependencies
+
+**Usage:** Read `.claude-index/index.md` to quickly understand the project structure before making changes. The index provides a navigation map of the codebase without needing to explore every file.
+
+**Regenerate:** Say "regenerate index" or "更新索引" to update the index after major changes.
