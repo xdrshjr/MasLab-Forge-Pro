@@ -47,7 +47,7 @@ export interface MessageBusStats {
  * Main message bus class
  */
 export class MessageBus extends EventEmitter {
-  private config: MessageBusConfig
+  private config: Required<MessageBusConfig>
   private clock: HeartbeatClock
   private router: MessageRouter
   private agentQueues: Map<string, PriorityQueue>
@@ -61,13 +61,14 @@ export class MessageBus extends EventEmitter {
   constructor(config: MessageBusConfig, database: Database, logger: Logger, taskId: string) {
     super()
 
+    // Set defaults for all config values to ensure they're never undefined
     this.config = {
       heartbeatInterval: config.heartbeatInterval ?? 4000,
       maxQueueSize: config.maxQueueSize ?? 1000,
       timeoutThreshold: config.timeoutThreshold ?? 3,
       enableCompression: config.enableCompression ?? false,
       compressionThreshold: config.compressionThreshold ?? 1024,
-    }
+    } as Required<MessageBusConfig>
 
     this.database = database
     this.logger = logger
@@ -86,7 +87,7 @@ export class MessageBus extends EventEmitter {
 
     // Initialize message router
     this.router = new MessageRouter(this.agentQueues, this.logger, {
-      maxQueueSize: this.config.maxQueueSize!,
+      maxQueueSize: this.config.maxQueueSize,
     })
 
     // Register heartbeat handler
@@ -177,6 +178,11 @@ export class MessageBus extends EventEmitter {
     // Validate message
     MessageValidator.validateOrThrow(message)
 
+    // Validate that message belongs to this task
+    if (message.taskId !== this.taskId) {
+      throw new Error(`Message taskId mismatch: expected ${this.taskId}, got ${message.taskId}`)
+    }
+
     // Compress if enabled
     let processedMessage = message
     if (this.compressor) {
@@ -212,7 +218,8 @@ export class MessageBus extends EventEmitter {
 
     // Decompress if needed
     if (this.compressor) {
-      return messages.map((msg) => this.compressor!.decompress(msg))
+      const compressor = this.compressor
+      return messages.map((msg) => compressor.decompress(msg))
     }
 
     return messages
@@ -253,7 +260,7 @@ export class MessageBus extends EventEmitter {
    * @param currentHeartbeat - Current heartbeat number
    */
   private checkTimeouts(currentHeartbeat: number): void {
-    const timeoutThreshold = this.config.timeoutThreshold!
+    const timeoutThreshold = this.config.timeoutThreshold
     const timeoutAgents: string[] = []
 
     for (const [agentId, lastSeen] of this.agentLastSeen) {
@@ -304,7 +311,7 @@ export class MessageBus extends EventEmitter {
 
     const currentHeartbeat = this.clock.getCurrentHeartbeat()
     const missedHeartbeats = currentHeartbeat - lastSeen
-    return missedHeartbeats <= this.config.timeoutThreshold!
+    return missedHeartbeats <= this.config.timeoutThreshold
   }
 
   /**

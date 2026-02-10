@@ -99,7 +99,7 @@ export class MessageFactory {
       from,
       to,
       type: MessageType.PROGRESS_REPORT,
-      content: report,
+      content: report as unknown as Record<string, unknown>,
       timestamp: Date.now(),
       priority: MessagePriority.NORMAL,
     }

@@ -57,9 +57,11 @@ export class PriorityQueue {
     ]
 
     for (const priority of priorities) {
-      const queue = this.queues.get(priority)!
-      result.push(...queue)
-      queue.length = 0 // Clear the queue
+      const queue = this.queues.get(priority)
+      if (queue) {
+        result.push(...queue)
+        queue.length = 0 // Clear the queue
+      }
     }
 
     return result
@@ -92,8 +94,8 @@ export class PriorityQueue {
     ]
 
     for (const priority of priorities) {
-      const queue = this.queues.get(priority)!
-      if (queue.length > 0) {
+      const queue = this.queues.get(priority)
+      if (queue && queue.length > 0) {
         return queue[0]
       }
     }

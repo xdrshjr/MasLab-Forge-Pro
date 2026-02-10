@@ -55,18 +55,20 @@ export class MessageStatsCollector {
     this.stats.messagesByType.set(message.type, typeCount + 1)
 
     // Track by sender
-    if (!this.stats.messagesByAgent.has(message.from)) {
-      this.stats.messagesByAgent.set(message.from, { sent: 0, received: 0 })
+    let senderStats = this.stats.messagesByAgent.get(message.from)
+    if (!senderStats) {
+      senderStats = { sent: 0, received: 0 }
+      this.stats.messagesByAgent.set(message.from, senderStats)
     }
-    const senderStats = this.stats.messagesByAgent.get(message.from)!
     senderStats.sent++
 
     // Track by receiver (skip broadcast and system)
     if (message.to !== 'broadcast' && message.to !== 'system') {
-      if (!this.stats.messagesByAgent.has(message.to)) {
-        this.stats.messagesByAgent.set(message.to, { sent: 0, received: 0 })
+      let receiverStats = this.stats.messagesByAgent.get(message.to)
+      if (!receiverStats) {
+        receiverStats = { sent: 0, received: 0 }
+        this.stats.messagesByAgent.set(message.to, receiverStats)
       }
-      const receiverStats = this.stats.messagesByAgent.get(message.to)!
       receiverStats.received++
     }
   }

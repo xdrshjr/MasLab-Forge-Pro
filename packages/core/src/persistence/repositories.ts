@@ -11,7 +11,7 @@ import { Task, Agent, Message, Decision, Audit, Election } from './types.js'
 /**
  * Base repository with common CRUD operations
  */
-abstract class BaseRepository<T extends Record<string, unknown>> {
+abstract class BaseRepository<T extends object> {
   constructor(
     protected db: Database.Database,
     protected tableName: string
