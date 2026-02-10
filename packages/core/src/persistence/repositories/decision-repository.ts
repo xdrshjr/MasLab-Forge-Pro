@@ -74,6 +74,16 @@ export class DecisionRepository {
   }
 
   /**
+   * Approves a decision
+   *
+   * @param id - Decision ID
+   */
+  approve(id: string): void {
+    const stmt = this.db.prepare('UPDATE decisions SET status = ?, approved_at = ? WHERE id = ?')
+    stmt.run('approved', Date.now(), id)
+  }
+
+  /**
    * Adds a signer to a decision
    *
    * @param id - Decision ID

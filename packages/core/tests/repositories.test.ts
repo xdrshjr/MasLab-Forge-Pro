@@ -196,7 +196,7 @@ describe('AgentRepository', () => {
     agentRepo.insert(agent1, 'task-1')
     agentRepo.insert(agent2, 'task-1')
 
-    const topAgents = agentRepo.getByLayer('top', 'task-1')
+    const topAgents = agentRepo.getByLayer('task-1', 'top')
     expect(topAgents).toHaveLength(1)
     expect(topAgents[0].id).toBe('agent-1')
   })
@@ -381,7 +381,7 @@ describe('AuditRepository', () => {
       agentId: 'agent-1',
       eventType: 'warning' as const,
       reason: 'Test warning',
-      createdAt: Date.now(),
+      timestamp: Date.now(),
     }
 
     auditRepo.insert(audit)
@@ -398,7 +398,7 @@ describe('AuditRepository', () => {
       agentId: 'agent-1',
       eventType: 'warning',
       reason: 'Warning 1',
-      createdAt: Date.now(),
+      timestamp: Date.now(),
     })
 
     auditRepo.insert({
@@ -407,10 +407,10 @@ describe('AuditRepository', () => {
       agentId: 'agent-1',
       eventType: 'warning',
       reason: 'Warning 2',
-      createdAt: Date.now(),
+      timestamp: Date.now(),
     })
 
-    const count = auditRepo.getWarningCount('agent-1')
+    const count = auditRepo.countWarnings('task-1', 'agent-1')
     expect(count).toBe(2)
   })
 })

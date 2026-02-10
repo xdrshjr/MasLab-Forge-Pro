@@ -54,7 +54,7 @@ export class AgentRepository {
       'initializing',
       JSON.stringify(agent.subordinates),
       JSON.stringify(agent.capabilities),
-      JSON.stringify({}),
+      JSON.stringify(agent.config),
       Date.now()
     )
   }
@@ -113,13 +113,18 @@ export class AgentRepository {
   /**
    * Gets agents by layer
    *
-   * @param taskId - Task ID
    * @param layer - Agent layer
+   * @param taskId - Optional task ID filter
    * @returns Array of agent records
    */
-  getByLayer(taskId: string, layer: 'top' | 'mid' | 'bottom'): AgentRecord[] {
-    const stmt = this.db.prepare('SELECT * FROM agents WHERE task_id = ? AND layer = ?')
-    const rows = stmt.all(taskId, layer) as AgentRow[]
+  getByLayer(layer: 'top' | 'mid' | 'bottom', taskId?: string): AgentRecord[] {
+    if (taskId) {
+      const stmt = this.db.prepare('SELECT * FROM agents WHERE layer = ? AND task_id = ?')
+      const rows = stmt.all(layer, taskId) as AgentRow[]
+      return rows.map((row) => this.mapRowToAgent(row))
+    }
+    const stmt = this.db.prepare('SELECT * FROM agents WHERE layer = ?')
+    const rows = stmt.all(layer) as AgentRow[]
     return rows.map((row) => this.mapRowToAgent(row))
   }
 
