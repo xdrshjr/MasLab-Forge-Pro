@@ -17,6 +17,9 @@ export * from './logging/index.js'
 // Communication system
 export * from './communication/index.js'
 
+// Whiteboard system
+export * from './whiteboard/index.js'
+
 // Version information
 export const VERSION = '0.1.0'
 
