@@ -1,0 +1,17 @@
+{
+  "name": "@magf/examples",
+  "version": "0.1.0",
+  "description": "Example implementations for Multi-Agent Governance Framework",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@magf/core": "*",
+    "@magf/cli": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

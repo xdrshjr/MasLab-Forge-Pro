@@ -1,0 +1,58 @@
+{
+  "name": "multi-agent-governance-framework",
+  "version": "0.1.0",
+  "description": "A multi-agent governance framework with three-tier architecture and power balance mechanisms",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "clean": "rimraf packages/*/dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint packages/core/src packages/cli/src --ext .ts",
+    "format": "prettier --write 'packages/*/src/**/*.ts'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "ci": "npm run lint && npm run typecheck && npm run test",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.1",
+    "rimraf": "^5.0.5",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "multi-agent",
+    "governance",
+    "ai",
+    "agent",
+    "framework",
+    "collaboration"
+  ],
+  "author": "MasLab",
+  "license": "MIT",
+  "lint-staged": {
+    "packages/*/src/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}

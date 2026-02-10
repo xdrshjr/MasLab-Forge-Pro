@@ -1,0 +1,35 @@
+{
+  "name": "@magf/cli",
+  "version": "0.1.0",
+  "description": "Command-line interface for Multi-Agent Governance Framework",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "magf": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "cli",
+    "multi-agent",
+    "governance"
+  ],
+  "dependencies": {
+    "@magf/core": "*",
+    "commander": "^11.1.0",
+    "ink": "^4.4.1",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.45",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  }
+}
