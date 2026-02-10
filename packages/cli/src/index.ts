@@ -8,7 +8,8 @@
  */
 
 import { Command } from 'commander'
-import { VERSION } from '@magf/core'
+
+const VERSION = '0.1.0'
 
 const program = new Command()
 

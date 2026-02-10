@@ -27,6 +27,8 @@
     "agent-framework"
   ],
   "dependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.6.2",
     "pino": "^8.16.0",
     "zod": "^3.22.4"
   },

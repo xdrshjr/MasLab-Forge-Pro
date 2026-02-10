@@ -146,13 +146,15 @@ export enum MessageType {
  */
 export interface Message {
   id: string
+  taskId: string
   from: string
   to: string
-  type: MessageType
-  content: unknown
+  type: string
+  content: Record<string, unknown>
   timestamp: number
   priority?: MessagePriority
   replyTo?: string
+  heartbeatNumber?: number
 }
 
 /**
@@ -175,15 +177,17 @@ export type DecisionStatus = 'pending' | 'approved' | 'rejected' | 'appealing'
  */
 export interface Decision {
   id: string
+  taskId: string
   proposerId: string
-  type: DecisionType
-  content: unknown
+  type: string
+  content: Record<string, unknown>
   requireSigners: string[]
   signers: string[]
   vetoers: string[]
-  status: DecisionStatus
+  status: 'pending' | 'approved' | 'rejected'
   createdAt: number
   approvedAt?: number
+  rejectedAt?: number
 }
 
 /**
@@ -206,4 +210,31 @@ export interface Task {
   mode: ExecutionMode
   createdAt: number
   completedAt?: number
+}
+
+/**
+ * Audit event for governance tracking
+ */
+export interface AuditEvent {
+  id: string
+  taskId: string
+  agentId: string
+  eventType: string
+  reason: string
+  metadata?: Record<string, unknown>
+  timestamp: number
+}
+
+/**
+ * Election result for performance-based governance
+ */
+export interface ElectionResult {
+  id: string
+  taskId: string
+  round: number
+  action: string
+  targetAgentId: string
+  votes: Record<string, string>
+  result: string
+  timestamp: number
 }

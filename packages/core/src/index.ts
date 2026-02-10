@@ -2,14 +2,17 @@
  * Multi-Agent Governance Framework - Core Package
  *
  * This is the main entry point for the @magf/core package.
- * It exports all public APIs, types, and utilities for building
- * multi-agent systems with governance mechanisms.
- *
- * @packageDocumentation
+ * It exports all public APIs for building multi-agent systems with governance.
  */
 
-// Export all type definitions
+// Type definitions
 export * from './types/index.js'
+
+// Persistence layer
+export * from './persistence/index.js'
+
+// Logging system
+export * from './logging/index.js'
 
 // Version information
 export const VERSION = '0.1.0'
