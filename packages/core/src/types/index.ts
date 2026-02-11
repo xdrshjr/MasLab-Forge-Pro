@@ -238,3 +238,60 @@ export interface ElectionResult {
   result: string
   timestamp: number
 }
+
+/**
+ * Appeal vote type
+ */
+export type AppealVote = 'support' | 'oppose'
+
+/**
+ * Appeal result
+ */
+export type AppealResult = 'success' | 'failed'
+
+/**
+ * Appeal structure for challenging vetoed decisions
+ */
+export interface Appeal {
+  id: string
+  decisionId: string
+  appealerId: string
+  arguments: string
+  votes: Array<{
+    agentId: string
+    vote: AppealVote
+  }>
+  result?: AppealResult
+  createdAt: number
+  resolvedAt?: number
+}
+
+/**
+ * Performance score for agent evaluation
+ */
+export interface PerformanceScore {
+  agentId: string
+  tasksCompleted: number
+  tasksFailed: number
+  successRate: number
+  averageResponseTime: number
+  collaborationScore: number
+  overallScore: number
+}
+
+/**
+ * Election action type
+ */
+export type ElectionAction = 'promote' | 'demote' | 'dismiss' | 'maintain'
+
+/**
+ * Audit event type
+ */
+export type AuditEventType =
+  | 'warning'
+  | 'demotion'
+  | 'dismissal'
+  | 'promotion'
+  | 'decision'
+  | 'veto'
+  | 'appeal'

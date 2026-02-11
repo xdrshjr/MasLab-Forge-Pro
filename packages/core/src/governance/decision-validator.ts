@@ -8,9 +8,9 @@ import { DecisionType } from '../types/index.js'
 import type { ProposeDecisionInput } from './signature-module.js'
 
 /**
- * Validation result
+ * Decision validation result
  */
-export interface ValidationResult {
+export interface DecisionValidationResult {
   valid: boolean
   errors: string[]
 }
@@ -25,7 +25,7 @@ export class DecisionValidator {
    * @param decision - Decision to validate
    * @returns Validation result with errors if invalid
    */
-  validate(decision: Partial<ProposeDecisionInput>): ValidationResult {
+  validate(decision: Partial<ProposeDecisionInput>): DecisionValidationResult {
     const errors: string[] = []
 
     // Basic field validation

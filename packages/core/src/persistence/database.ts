@@ -6,6 +6,12 @@
  */
 
 import Database from 'better-sqlite3'
+import { TaskRepository } from './repositories/task-repository.js'
+import { AgentRepository } from './repositories/agent-repository.js'
+import { MessageRepository } from './repositories/message-repository.js'
+import { DecisionRepository } from './repositories/decision-repository.js'
+import { AuditRepository } from './repositories/audit-repository.js'
+import { ElectionRepository } from './repositories/election-repository.js'
 
 export interface DatabaseConfig {
   path: string
@@ -19,6 +25,12 @@ export interface DatabaseConfig {
 export class DatabaseManager {
   private db: Database.Database | null = null
   private config: DatabaseConfig
+  private taskRepository?: TaskRepository
+  private agentRepository?: AgentRepository
+  private messageRepository?: MessageRepository
+  private decisionRepository?: DecisionRepository
+  private auditRepository?: AuditRepository
+  private electionRepository?: ElectionRepository
 
   constructor(config: DatabaseConfig) {
     this.config = config
@@ -69,6 +81,17 @@ export class DatabaseManager {
   }
 
   /**
+   * Execute one or more SQL statements
+   * Does not return any results
+   *
+   * @param sql - SQL statement(s) to execute
+   */
+  exec(sql: string): void {
+    const db = this.getDatabase()
+    db.exec(sql)
+  }
+
+  /**
    * Execute a function within a transaction
    * Automatically rolls back on error
    */
@@ -96,7 +119,7 @@ export class DatabaseManager {
       CREATE TABLE IF NOT EXISTS tasks (
         id TEXT PRIMARY KEY,
         description TEXT NOT NULL,
-        status TEXT NOT NULL CHECK(status IN ('pending', 'running', 'paused', 'completed', 'cancelled')),
+        status TEXT NOT NULL CHECK(status IN ('pending', 'running', 'paused', 'completed', 'cancelled', 'failed')),
         mode TEXT NOT NULL CHECK(mode IN ('auto', 'semi-auto')),
         created_at INTEGER NOT NULL,
         completed_at INTEGER
@@ -239,6 +262,66 @@ export class DatabaseManager {
         console.log(`Migration ${migration.version} completed`)
       }
     }
+  }
+
+  /**
+   * Get task repository instance
+   */
+  getTaskRepository(): TaskRepository {
+    if (!this.taskRepository) {
+      this.taskRepository = new TaskRepository(this.getDatabase())
+    }
+    return this.taskRepository
+  }
+
+  /**
+   * Get agent repository instance
+   */
+  getAgentRepository(): AgentRepository {
+    if (!this.agentRepository) {
+      this.agentRepository = new AgentRepository(this.getDatabase())
+    }
+    return this.agentRepository
+  }
+
+  /**
+   * Get message repository instance
+   */
+  getMessageRepository(): MessageRepository {
+    if (!this.messageRepository) {
+      this.messageRepository = new MessageRepository(this.getDatabase())
+    }
+    return this.messageRepository
+  }
+
+  /**
+   * Get decision repository instance
+   */
+  getDecisionRepository(): DecisionRepository {
+    if (!this.decisionRepository) {
+      this.decisionRepository = new DecisionRepository(this.getDatabase())
+    }
+    return this.decisionRepository
+  }
+
+  /**
+   * Get audit repository instance
+   */
+  getAuditRepository(): AuditRepository {
+    if (!this.auditRepository) {
+      this.auditRepository = new AuditRepository(this.getDatabase())
+    }
+    return this.auditRepository
+  }
+
+  /**
+   * Get election repository instance
+   */
+  getElectionRepository(): ElectionRepository {
+    if (!this.electionRepository) {
+      this.electionRepository = new ElectionRepository(this.getDatabase())
+    }
+    return this.electionRepository
   }
 }
 

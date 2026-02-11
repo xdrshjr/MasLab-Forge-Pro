@@ -68,7 +68,7 @@ export class DecisionRepository {
    * @param id - Decision ID
    * @param status - New status
    */
-  updateStatus(id: string, status: 'pending' | 'approved' | 'rejected'): void {
+  updateStatus(id: string, status: 'pending' | 'approved' | 'rejected' | 'appealing'): void {
     const stmt = this.db.prepare('UPDATE decisions SET status = ? WHERE id = ?')
     stmt.run(status, id)
   }

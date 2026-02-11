@@ -128,9 +128,9 @@ describe('VetoModule', () => {
         requireSigners: ['top-1', 'top-2'],
       })
 
-      await expect(
+      expect(() => {
         vetoModule.vetoDecision(decision.id, 'top-3', 'Unauthorized veto')
-      ).rejects.toThrow('not authorized to veto')
+      }).toThrow('not authorized to veto')
     })
 
     it('should reject veto of non-pending decision', async () => {
@@ -145,15 +145,15 @@ describe('VetoModule', () => {
       await signatureModule.signDecision(decision.id, 'top-1')
       await signatureModule.signDecision(decision.id, 'top-2')
 
-      await expect(
+      expect(() => {
         vetoModule.vetoDecision(decision.id, 'top-1', 'Too late')
-      ).rejects.toThrow('Cannot veto decision')
+      }).toThrow('Cannot veto decision')
     })
 
-    it('should reject veto of non-existent decision', async () => {
-      await expect(
+    it('should reject veto of non-existent decision', () => {
+      expect(() => {
         vetoModule.vetoDecision('non-existent-id', 'top-1', 'Does not exist')
-      ).rejects.toThrow('not found')
+      }).toThrow('not found')
     })
   })
 })

@@ -77,14 +77,19 @@ describe('GovernanceEngine', () => {
     })
 
     it('should reject invalid decisions', async () => {
-      await expect(
-        governanceEngine.submitDecision({
+      try {
+        await governanceEngine.submitDecision({
           proposerId: '',
           type: DecisionType.TECHNICAL_PROPOSAL,
           content: {},
           requireSigners: [],
         })
-      ).rejects.toThrow('Invalid decision')
+        // If we get here, the test should fail
+        expect.fail('Expected submitDecision to throw an error')
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error)
+        expect((error as Error).message).toContain('Invalid decision')
+      }
     })
   })
 

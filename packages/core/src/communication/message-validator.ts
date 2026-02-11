@@ -8,9 +8,9 @@
 import { Message, MessageType, MessagePriority } from '../types/index.js'
 
 /**
- * Validation result structure
+ * Message validation result structure
  */
-export interface ValidationResult {
+export interface MessageValidationResult {
   valid: boolean
   errors: string[]
 }
@@ -25,7 +25,7 @@ export class MessageValidator {
    * @param message - Message to validate
    * @returns Validation result with any errors found
    */
-  static validate(message: Message): ValidationResult {
+  static validate(message: Message): MessageValidationResult {
     const errors: string[] = []
 
     // Check required fields

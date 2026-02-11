@@ -118,6 +118,15 @@ export class MessageBus extends EventEmitter {
     this.logger.info('MessageBus stopped')
   }
 
+  /**
+   * Check if the message bus is currently running
+   *
+   * @returns True if running, false otherwise
+   */
+  isRunning(): boolean {
+    return this.clock.getIsRunning()
+  }
+
   // === Agent Management ===
 
   /**

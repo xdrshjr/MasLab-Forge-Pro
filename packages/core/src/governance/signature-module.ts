@@ -11,6 +11,7 @@ import { DecisionType, MessageType, MessagePriority } from '../types/index.js'
 import type { DecisionRepository } from '../persistence/repositories/decision-repository.js'
 import type { MessageBus } from '../communication/message-bus.js'
 import type { WhiteboardSystem } from '../whiteboard/index.js'
+import { WhiteboardType } from '../whiteboard/types.js'
 import type { SignatureConfig } from './signature-config.js'
 import type { Logger } from 'pino'
 
@@ -183,6 +184,6 @@ ${JSON.stringify(decision.content, null, 2)}
 \`\`\`
 `
 
-    await whiteboard.append('global', content, 'system')
+    await whiteboard.append(WhiteboardType.GLOBAL, content, 'system')
   }
 }

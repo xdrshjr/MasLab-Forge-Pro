@@ -26,6 +26,9 @@ export * from './agents/index.js'
 // Governance system
 export * from './governance/index.js'
 
+// Team management system
+export * from './team/index.js'
+
 // Version information
 export const VERSION = '0.1.0'
 
