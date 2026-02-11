@@ -23,6 +23,9 @@ export * from './whiteboard/index.js'
 // Agent system
 export * from './agents/index.js'
 
+// Governance system
+export * from './governance/index.js'
+
 // Version information
 export const VERSION = '0.1.0'
 

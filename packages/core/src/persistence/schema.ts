@@ -90,6 +90,7 @@ export function createSchema(db: Database.Database): void {
       status TEXT NOT NULL CHECK(status IN ('pending', 'approved', 'rejected', 'appealing')),
       created_at INTEGER NOT NULL,
       approved_at INTEGER,
+      rejected_at INTEGER,
       FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
     )
   `)
