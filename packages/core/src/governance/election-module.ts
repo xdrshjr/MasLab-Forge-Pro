@@ -11,6 +11,7 @@ import type { MessageBus } from '../communication/message-bus.js'
 import type { AccountabilityModule } from './accountability-module.js'
 import type { PerformanceEvaluator } from './performance-evaluator.js'
 import type { AgentLayer, AgentMetrics, PerformanceScore, ElectionAction } from '../types/index.js'
+import { MessageType } from '../types/index.js'
 import { randomUUID } from 'node:crypto'
 
 /**
@@ -229,7 +230,7 @@ export class ElectionModule {
       taskId: this.taskId,
       from: 'system',
       to: agentId,
-      type: 'promotion_notice',
+      type: MessageType.PROMOTION_NOTICE,
       content: { newLayer: 'mid' },
       timestamp: Date.now(),
       priority: 2, // HIGH

@@ -3,10 +3,11 @@
     // Language and Environment
     "target": "ES2022",
     "lib": ["ES2022"],
+    "jsx": "react",
 
     // Modules
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
 
     // Emit

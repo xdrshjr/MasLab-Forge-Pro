@@ -5,7 +5,7 @@
  */
 
 import type Database from 'better-sqlite3'
-import type { Message } from '../../types/index.js'
+import type { Message, MessageType } from '../../types/index.js'
 import type { MessageRow } from '../row-types.js'
 
 /**
@@ -149,7 +149,7 @@ export class MessageRepository {
       taskId: row.task_id,
       from: row.from_agent,
       to: row.to_agent,
-      type: row.type,
+      type: row.type as MessageType,
       content: JSON.parse(row.content) as Record<string, unknown>,
       timestamp: row.timestamp,
       heartbeatNumber: row.heartbeat_number ?? undefined,
