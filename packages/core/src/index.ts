@@ -29,6 +29,12 @@ export * from './governance/index.js'
 // Team management system
 export * from './team/index.js'
 
+// Error recovery system (Task 09)
+export * from './recovery/index.js'
+
+// Pi-mono integration (Task 09)
+export * from './integration/index.js'
+
 // Version information
 export const VERSION = '0.1.0'
 

@@ -9,6 +9,10 @@ import type { AgentConfig } from '../types/index.js'
 import type { MessageBus } from '../communication/index.js'
 import type { WhiteboardSystem } from '../whiteboard/index.js'
 import type { DatabaseManager } from '../persistence/index.js'
+import type { ErrorRecoveryManager } from '../recovery/index.js'
+import type { PeerTakeoverCoordinator } from '../recovery/index.js'
+import type { SupervisorEscalationHandler } from '../recovery/index.js'
+import type { ExecutionMonitor } from '../recovery/index.js'
 
 /**
  * Dependencies required by all agents
@@ -19,6 +23,11 @@ export interface AgentDependencies {
   database: DatabaseManager
   // governanceEngine will be added in Task 06
   governanceEngine?: unknown
+  // Error recovery components (Task 09)
+  errorRecoveryManager?: ErrorRecoveryManager
+  peerTakeoverCoordinator?: PeerTakeoverCoordinator
+  supervisorEscalationHandler?: SupervisorEscalationHandler
+  executionMonitor?: ExecutionMonitor
 }
 
 /**

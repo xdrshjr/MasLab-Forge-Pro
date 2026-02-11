@@ -149,7 +149,7 @@ export interface Message {
   taskId: string
   from: string
   to: string
-  type: string
+  type: MessageType
   content: Record<string, unknown>
   timestamp: number
   priority?: MessagePriority

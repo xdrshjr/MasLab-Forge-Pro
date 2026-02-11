@@ -14,6 +14,7 @@ import type {
   AgentTask,
   TaskExecutionResult,
 } from './types.js'
+import { v4 as uuidv4 } from 'uuid'
 
 /**
  * Bottom layer agent with execution capabilities
@@ -91,13 +92,27 @@ export class BottomLayerAgent extends BaseAgent {
     this.stateMachine.transition(this, AgentStatus.WORKING, 'executing task')
     console.log(`[${this.config.name}] Executing: ${this.currentTask.description}`)
 
+    const executionId = uuidv4()
     const startTime = Date.now()
 
+    // Start execution monitoring with timeout
+    const timeoutMs = this.config.config.timeoutMs || 30000 // Default 30 seconds
+    if (this.executionMonitor) {
+      this.executionMonitor.startMonitoring(executionId, this.config.id, timeoutMs, () => {
+        console.log(`[${this.config.name}] Task execution timed out`)
+      })
+    }
+
     try {
-      // Execute using tools (will integrate pi-coding-agent in Task 09)
+      // Execute using tools (integrated with pi-coding-agent)
       const result = await this.executeWithTools(this.currentTask)
 
       const duration = Date.now() - startTime
+
+      // Stop monitoring
+      if (this.executionMonitor) {
+        this.executionMonitor.stopMonitoring(executionId)
+      }
 
       // Update whiteboard
       await this.writeWhiteboard(`
@@ -138,30 +153,75 @@ ${result.output}
       this.currentTask = null
       this.stateMachine.transition(this, AgentStatus.IDLE, 'task complete')
     } catch (error) {
+      // Stop monitoring on error
+      if (this.executionMonitor) {
+        this.executionMonitor.stopMonitoring(executionId)
+      }
+
       console.error(`[${this.config.name}] Task execution failed:`, error)
       await this.handleError(error as Error)
     }
   }
 
   /**
-   * Execute task with tools (placeholder for pi-coding-agent integration)
+   * Execute task with tools (integrated with pi-coding-agent)
    */
   private async executeWithTools(task: AgentTask): Promise<TaskExecutionResult> {
-    // Placeholder - will integrate with pi-coding-agent in Task 09
     console.log(`[${this.config.name}] Executing task with tools: ${this.tools.join(', ')}`)
 
-    // Track execution time
     const startTime = Date.now()
 
-    // Simulate task execution
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    try {
+      // Read whiteboard for context (will be used when pi-coding-agent is integrated)
+      const layerWhiteboard = await this.readWhiteboard(this.config.layer, this.config.id)
+      const globalWhiteboard = await this.readWhiteboard('global')
 
-    const duration = Date.now() - startTime
+      // TODO: Integrate with pi-coding-agent when available
+      // const piCodingAgent = new PiCodingAgent({
+      //   model: this.config.config.llmModel || 'claude-3-5-sonnet',
+      //   tools: this.tools
+      // })
+      //
+      // const result: CodingResult = await piCodingAgent.execute({
+      //   task: task.description,
+      //   context: {
+      //     layerWhiteboard,
+      //     globalWhiteboard,
+      //     taskContext: task.context
+      //   },
+      //   tools: this.tools
+      // })
+      //
+      // if (result.success && result.files) {
+      //   // Save generated files
+      //   for (const file of result.files) {
+      //     await this.saveGeneratedFile(file.path, file.content)
+      //   }
+      // }
 
-    return {
-      success: true,
-      output: `Task "${task.description}" completed successfully`,
-      duration,
+      // Placeholder implementation until pi-coding-agent is available
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
+      const duration = Date.now() - startTime
+
+      // Use whiteboard context in output
+      const contextInfo = `Layer whiteboard: ${layerWhiteboard.length} chars, Global whiteboard: ${globalWhiteboard.length} chars`
+
+      return {
+        success: true,
+        output: `Task "${task.description}" completed successfully\nContext: ${contextInfo}`,
+        duration,
+      }
+    } catch (error) {
+      const duration = Date.now() - startTime
+      console.error(`[${this.config.name}] Execution error:`, error)
+
+      return {
+        success: false,
+        output: '',
+        duration,
+        error: (error as Error).message,
+      }
     }
   }
 

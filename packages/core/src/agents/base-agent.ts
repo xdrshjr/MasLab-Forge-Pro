@@ -15,6 +15,13 @@ import type { MessageBus } from '../communication/index.js'
 import type { WhiteboardSystem } from '../whiteboard/index.js'
 import { WhiteboardType } from '../whiteboard/index.js'
 import type { DatabaseManager } from '../persistence/index.js'
+import type {
+  ErrorRecoveryManager,
+  PeerTakeoverCoordinator,
+  SupervisorEscalationHandler,
+  ExecutionMonitor,
+} from '../recovery/index.js'
+import { ErrorSeverity } from '../recovery/index.js'
 
 /**
  * Abstract base class for all agents
@@ -32,6 +39,10 @@ export abstract class BaseAgent {
   protected whiteboardSystem: WhiteboardSystem
   protected database: DatabaseManager
   protected governanceEngine?: unknown // Will be typed in Task 06
+  protected errorRecoveryManager?: ErrorRecoveryManager
+  protected peerTakeoverCoordinator?: PeerTakeoverCoordinator
+  protected supervisorEscalationHandler?: SupervisorEscalationHandler
+  protected executionMonitor?: ExecutionMonitor
 
   constructor(config: AgentConfig, dependencies: AgentDependencies) {
     this.config = config
@@ -44,6 +55,10 @@ export abstract class BaseAgent {
     this.whiteboardSystem = dependencies.whiteboardSystem
     this.database = dependencies.database
     this.governanceEngine = dependencies.governanceEngine
+    this.errorRecoveryManager = dependencies.errorRecoveryManager
+    this.peerTakeoverCoordinator = dependencies.peerTakeoverCoordinator
+    this.supervisorEscalationHandler = dependencies.supervisorEscalationHandler
+    this.executionMonitor = dependencies.executionMonitor
   }
 
   // ===== Public Lifecycle Methods =====
@@ -262,6 +277,20 @@ export abstract class BaseAgent {
     return { ...this.config }
   }
 
+  /**
+   * Get agent ID
+   */
+  getId(): string {
+    return this.config.id
+  }
+
+  /**
+   * Get agent layer
+   */
+  getLayer(): string {
+    return this.config.layer
+  }
+
   // ===== Internal Methods =====
 
   /**
@@ -287,34 +316,90 @@ export abstract class BaseAgent {
   }
 
   /**
-   * Handle errors with retry logic
+   * Handle errors with comprehensive recovery strategy
    */
   protected async handleError(error: Error): Promise<void> {
     console.error(`[${this.config.name}] Error:`, error)
 
-    // Retry logic
-    if (this.retryCount < this.config.config.maxRetries) {
-      this.retryCount++
-      console.log(`[${this.config.name}] Retry ${this.retryCount}/${this.config.config.maxRetries}`)
-      return
-    }
+    // Use error recovery manager if available
+    if (this.errorRecoveryManager) {
+      const errorContext = {
+        error,
+        agentId: this.config.id,
+        taskId: 'current-task', // Will be properly set when task management is implemented
+        attemptCount: this.retryCount,
+        severity: ErrorSeverity.LOW, // Will be classified by manager
+      }
 
-    // Exceeded retries, report failure
-    // Ensure we're in a state that can transition to FAILED
-    if (this.status === AgentStatus.IDLE) {
-      this.stateMachine.transition(this, AgentStatus.WORKING, 'preparing to fail')
-    }
+      const recoveryAction = await this.errorRecoveryManager.handleError(errorContext)
 
-    this.stateMachine.transition(this, AgentStatus.FAILED, 'retry limit exceeded')
-    this.metrics.tasksFailed++
+      switch (recoveryAction.type) {
+        case 'retry':
+          this.retryCount++
+          console.log(`[${this.config.name}] Retrying after ${recoveryAction.delay}ms`)
+          return // Will retry on next heartbeat
 
-    // Report to supervisor if available
-    if (this.config.supervisor) {
-      this.sendMessage(this.config.supervisor, MessageType.ERROR_REPORT, {
-        error: error.message,
-        stack: error.stack,
-        metrics: this.metrics,
-      })
+        case 'peer_takeover':
+          console.log(`[${this.config.name}] Requesting peer takeover`)
+          if (this.peerTakeoverCoordinator) {
+            const success = await this.peerTakeoverCoordinator.initiateTakeover(
+              this.config.id,
+              errorContext.taskId
+            )
+
+            if (success) {
+              // Peer accepted, transition to idle
+              this.stateMachine.transition(this, AgentStatus.IDLE, 'peer takeover')
+              return
+            }
+          }
+          // Peer unavailable, escalate to supervisor
+          if (this.supervisorEscalationHandler) {
+            this.supervisorEscalationHandler.escalateToSupervisor(this.config.id, error)
+          }
+          this.stateMachine.transition(this, AgentStatus.BLOCKED, 'awaiting supervisor')
+          return
+
+        case 'escalate_to_supervisor':
+          if (this.supervisorEscalationHandler) {
+            this.supervisorEscalationHandler.escalateToSupervisor(this.config.id, error)
+          }
+          this.stateMachine.transition(this, AgentStatus.BLOCKED, 'awaiting supervisor')
+          return
+
+        case 'escalate_to_top':
+          if (this.supervisorEscalationHandler) {
+            this.supervisorEscalationHandler.escalateToTopLayer(this.config.id, error)
+          }
+          this.stateMachine.transition(this, AgentStatus.BLOCKED, 'awaiting top layer')
+          return
+      }
+    } else {
+      // Fallback to simple retry logic if error recovery manager not available
+      if (this.retryCount < this.config.config.maxRetries) {
+        this.retryCount++
+        console.log(
+          `[${this.config.name}] Retry ${this.retryCount}/${this.config.config.maxRetries}`
+        )
+        return
+      }
+
+      // Exceeded retries, report failure
+      if (this.status === AgentStatus.IDLE) {
+        this.stateMachine.transition(this, AgentStatus.WORKING, 'preparing to fail')
+      }
+
+      this.stateMachine.transition(this, AgentStatus.FAILED, 'retry limit exceeded')
+      this.metrics.tasksFailed++
+
+      // Report to supervisor if available
+      if (this.config.supervisor) {
+        this.sendMessage(this.config.supervisor, MessageType.ERROR_REPORT, {
+          error: error.message,
+          stack: error.stack,
+          metrics: this.metrics,
+        })
+      }
     }
   }
 
