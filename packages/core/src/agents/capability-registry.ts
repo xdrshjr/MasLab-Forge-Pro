@@ -15,7 +15,7 @@ export interface Capability {
   name: AgentCapability
   description: string
   requiredLayer: AgentLayer[]
-  execute: (agent: BaseAgent, context: any) => Promise<any>
+  execute: (agent: BaseAgent, context: Record<string, unknown>) => Promise<unknown>
 }
 
 /**

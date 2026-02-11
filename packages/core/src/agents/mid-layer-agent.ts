@@ -8,7 +8,15 @@
 import { BaseAgent } from './base-agent.js'
 import { AgentStatus, MessageType } from '../types/index.js'
 import type { Message } from '../types/index.js'
-import type { MidLayerAgentConfig, AgentDependencies, AgentTask, Issue } from './types.js'
+import type {
+  MidLayerAgentConfig,
+  AgentDependencies,
+  AgentTask,
+  Issue,
+  ProgressReport,
+  TaskDecomposition,
+  SubTask,
+} from './types.js'
 
 /**
  * Mid layer agent with tactical planning capabilities
@@ -117,7 +125,7 @@ export class MidLayerAgent extends BaseAgent {
     await this.writeWhiteboard(`
 ## Task Allocation Plan
 
-${decomposition.subtasks.map((st: any) => `- [${st.assignee}] ${st.description}`).join('\n')}
+${decomposition.subtasks.map((st: SubTask) => `- [${st.assignee}] ${st.description}`).join('\n')}
     `)
 
     this.taskQueue = []
@@ -126,13 +134,16 @@ ${decomposition.subtasks.map((st: any) => `- [${st.assignee}] ${st.description}`
   /**
    * Decompose task (placeholder for LLM integration)
    */
-  private async decomposeTask(tasks: AgentTask[]): Promise<any> {
+  private async decomposeTask(tasks: AgentTask[]): Promise<TaskDecomposition> {
     // Placeholder - will integrate with pi-agent-core in Task 09
     return {
       subtasks: tasks.map((task, index) => ({
-        ...task,
-        assignee: this.config.subordinates[index % this.config.subordinates.length],
+        id: task.id,
+        description: task.description,
+        assignee: this.config.subordinates[index % this.config.subordinates.length] || 'unassigned',
+        dependencies: task.dependencies,
       })),
+      dependencies: {},
     }
   }
 
@@ -142,7 +153,7 @@ ${decomposition.subtasks.map((st: any) => `- [${st.assignee}] ${st.description}`
   private async aggregateSubordinateProgress(reports: Message[]): Promise<void> {
     for (const report of reports) {
       const agentId = report.from
-      const progress = report.content.progress as any
+      const progress = report.content.progress as ProgressReport
 
       this.subordinateStatus.set(agentId, progress.status as AgentStatus)
 
@@ -179,7 +190,9 @@ ${decomposition.subtasks.map((st: any) => `- [${st.assignee}] ${st.description}`
   /**
    * Generate peer response (placeholder for LLM integration)
    */
-  private async generatePeerResponse(_request: any): Promise<any> {
+  private async generatePeerResponse(
+    _request: Record<string, unknown>
+  ): Promise<Record<string, unknown>> {
     // Placeholder - will integrate with pi-agent-core in Task 09
     return { status: 'acknowledged' }
   }

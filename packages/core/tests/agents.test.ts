@@ -164,7 +164,7 @@ describe('BaseAgent', () => {
     expect(dependencies.messageBus.registerAgent).toHaveBeenCalledWith(
       'test-agent-1'
     )
-    expect(dependencies.whiteboardSystem.createWhiteboard).toHaveBeenCalled()
+    // Note: Whiteboards are created automatically by the system
   })
 
   it('should process messages on heartbeat', async () => {

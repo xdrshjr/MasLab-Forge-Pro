@@ -18,7 +18,7 @@ export interface AgentDependencies {
   whiteboardSystem: WhiteboardSystem
   database: DatabaseManager
   // governanceEngine will be added in Task 06
-  governanceEngine?: any
+  governanceEngine?: unknown
 }
 
 /**
@@ -54,7 +54,7 @@ export interface AgentTask {
   description: string
   deadline?: number
   dependencies?: string[]
-  context?: any
+  context?: Record<string, unknown>
 }
 
 /**
@@ -76,6 +76,56 @@ export interface ProgressReport {
   status: 'in_progress' | 'completed' | 'failed'
   percentage: number
   description: string
-  result?: any
+  result?: Record<string, unknown>
   blockers?: string[]
+}
+
+/**
+ * Decision structure (placeholder for Task 06)
+ */
+export interface DecisionProposal {
+  id: string
+  proposerId: string
+  content: Record<string, unknown>
+  requireSigners: string[]
+  status: 'pending' | 'approved' | 'rejected'
+  createdAt: number
+}
+
+/**
+ * Vote structure for conflict resolution
+ */
+export interface Vote {
+  agentId: string
+  decision: 'approve' | 'reject' | 'abstain'
+  reason?: string
+}
+
+/**
+ * Task decomposition result
+ */
+export interface TaskDecomposition {
+  subtasks: SubTask[]
+  dependencies: Record<string, string[]>
+}
+
+/**
+ * Subtask structure
+ */
+export interface SubTask {
+  id: string
+  description: string
+  assignee: string
+  estimatedDuration?: number
+  dependencies?: string[]
+}
+
+/**
+ * Task execution result
+ */
+export interface TaskExecutionResult {
+  success: boolean
+  output: string
+  duration: number
+  error?: string
 }

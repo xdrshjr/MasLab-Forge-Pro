@@ -8,7 +8,13 @@
 import { BaseAgent } from './base-agent.js'
 import { MessageType } from '../types/index.js'
 import type { Message } from '../types/index.js'
-import type { TopLayerAgentConfig, AgentDependencies } from './types.js'
+import type {
+  TopLayerAgentConfig,
+  AgentDependencies,
+  DecisionProposal,
+  ProgressReport,
+  Vote,
+} from './types.js'
 
 /**
  * Top layer agent with strategic decision capabilities
@@ -98,16 +104,16 @@ export class TopLayerAgent extends BaseAgent {
    * Review and sign a decision
    */
   private async reviewAndSign(request: Message): Promise<void> {
-    const decision = request.content.decision as any
+    const decision = request.content.decision as DecisionProposal
 
     // Use LLM to evaluate (will be integrated with pi-agent-core in Task 09)
     const shouldSign = await this.evaluateDecision(decision)
 
     if (shouldSign) {
-      await this.signDecision(decision.id as string)
+      await this.signDecision(decision.id)
       console.log(`[${this.config.name}] Signed decision ${decision.id}`)
     } else {
-      await this.vetoDecision(decision.id as string, 'Risk assessment failed')
+      await this.vetoDecision(decision.id, 'Risk assessment failed')
       console.log(`[${this.config.name}] Vetoed decision ${decision.id}`)
     }
   }
@@ -115,7 +121,7 @@ export class TopLayerAgent extends BaseAgent {
   /**
    * Evaluate a decision (placeholder for LLM integration)
    */
-  private async evaluateDecision(_decision: any): Promise<boolean> {
+  private async evaluateDecision(_decision: DecisionProposal): Promise<boolean> {
     // Placeholder - will integrate with pi-agent-core in Task 09
     return true
   }
@@ -127,7 +133,7 @@ export class TopLayerAgent extends BaseAgent {
     console.log(`[${this.config.name}] Reviewing ${reports.length} mid-layer reports`)
     // Aggregate and analyze reports
     for (const report of reports) {
-      const progress = report.content.progress as any
+      const progress = report.content.progress as ProgressReport
       console.log(`[${this.config.name}] Mid-layer ${report.from}: ${progress.status || 'unknown'}`)
     }
   }
@@ -178,7 +184,7 @@ Time: ${new Date().toISOString()}
   /**
    * Collect votes from other agents
    */
-  private async collectVotes(_agents: string[], _conflict: Message): Promise<any[]> {
+  private async collectVotes(_agents: string[], _conflict: Message): Promise<Vote[]> {
     // Placeholder for voting mechanism
     return []
   }
@@ -186,7 +192,7 @@ Time: ${new Date().toISOString()}
   /**
    * Calculate resolution from votes
    */
-  private calculateResolution(_votes: any[]): string {
+  private calculateResolution(_votes: Vote[]): string {
     // Placeholder for resolution logic
     return 'Resolved by majority vote'
   }

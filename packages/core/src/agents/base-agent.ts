@@ -11,6 +11,10 @@ import type { AgentConfig, AgentMetrics, Message } from '../types/index.js'
 import type { AgentDependencies } from './types.js'
 import { AgentStateMachine } from './state-machine.js'
 import { v4 as uuidv4 } from 'uuid'
+import type { MessageBus } from '../communication/index.js'
+import type { WhiteboardSystem } from '../whiteboard/index.js'
+import { WhiteboardType } from '../whiteboard/index.js'
+import type { DatabaseManager } from '../persistence/index.js'
 
 /**
  * Abstract base class for all agents
@@ -24,10 +28,10 @@ export abstract class BaseAgent {
   private retryCount: number = 0
 
   // Dependencies
-  protected messageBus: any
-  protected whiteboardSystem: any
-  protected database: any
-  protected governanceEngine?: any
+  protected messageBus: MessageBus
+  protected whiteboardSystem: WhiteboardSystem
+  protected database: DatabaseManager
+  protected governanceEngine?: unknown // Will be typed in Task 06
 
   constructor(config: AgentConfig, dependencies: AgentDependencies) {
     this.config = config
@@ -53,8 +57,8 @@ export abstract class BaseAgent {
     // Register with message bus
     this.messageBus.registerAgent(this.config.id)
 
-    // Create whiteboard
-    await this.whiteboardSystem.createWhiteboard(this.config.layer, this.config.id)
+    // Note: Whiteboards are created automatically by the system
+    // No explicit creation needed here
 
     // Subclass-specific initialization
     await this.onInitialize()
@@ -135,7 +139,7 @@ export abstract class BaseAgent {
   /**
    * Send a message to another agent
    */
-  sendMessage(to: string, type: MessageType, content: any): void {
+  sendMessage(to: string, type: MessageType, content: Record<string, unknown>): void {
     const message: Message = {
       id: uuidv4(),
       from: this.config.id,
@@ -152,7 +156,7 @@ export abstract class BaseAgent {
   /**
    * Broadcast a message to all agents
    */
-  broadcastMessage(type: MessageType, content: any): void {
+  broadcastMessage(type: MessageType, content: Record<string, unknown>): void {
     this.sendMessage('broadcast', type, content)
   }
 
@@ -162,21 +166,41 @@ export abstract class BaseAgent {
    * Read whiteboard content
    */
   async readWhiteboard(layer: string, agentId?: string): Promise<string> {
-    return await this.whiteboardSystem.read(layer, agentId)
+    const whiteboardType = this.layerToWhiteboardType(layer)
+    return await this.whiteboardSystem.read(whiteboardType, agentId || this.config.id)
   }
 
   /**
    * Write to whiteboard
    */
   async writeWhiteboard(content: string): Promise<void> {
-    await this.whiteboardSystem.write(this.config.layer, content, this.config.id)
+    const whiteboardType = this.layerToWhiteboardType(this.config.layer)
+    await this.whiteboardSystem.write(whiteboardType, content, this.config.id)
   }
 
   /**
    * Append to global whiteboard
    */
   async appendToGlobalWhiteboard(content: string): Promise<void> {
-    await this.whiteboardSystem.append('global', content, this.config.id)
+    await this.whiteboardSystem.append(WhiteboardType.GLOBAL, content, this.config.id)
+  }
+
+  /**
+   * Convert agent layer to whiteboard type
+   */
+  private layerToWhiteboardType(layer: string): WhiteboardType {
+    switch (layer) {
+      case 'top':
+        return WhiteboardType.TOP_LAYER
+      case 'mid':
+        return WhiteboardType.MID_LAYER
+      case 'bottom':
+        return WhiteboardType.BOTTOM_LAYER
+      case 'global':
+        return WhiteboardType.GLOBAL
+      default:
+        throw new Error(`Unknown layer: ${layer}`)
+    }
   }
 
   // ===== Decision Operations (will be implemented in Task 06) =====
@@ -184,7 +208,10 @@ export abstract class BaseAgent {
   /**
    * Propose a decision (placeholder for governance integration)
    */
-  async proposeDecision(_content: any, _requireSigners: string[]): Promise<any> {
+  async proposeDecision(
+    _content: Record<string, unknown>,
+    _requireSigners: string[]
+  ): Promise<unknown> {
     if (!this.governanceEngine) {
       throw new Error('Governance engine not available')
     }

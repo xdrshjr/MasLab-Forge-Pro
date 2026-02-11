@@ -5,12 +5,22 @@
  * destruction, and registry of all active agents.
  */
 
-import type { AgentConfig, AgentLayer } from '../types/index.js'
-import type { AgentDependencies } from './types.js'
+import type { AgentLayer } from '../types/index.js'
+import type {
+  AgentDependencies,
+  TopLayerAgentConfig,
+  MidLayerAgentConfig,
+  BottomLayerAgentConfig,
+} from './types.js'
 import { BaseAgent } from './base-agent.js'
 import { TopLayerAgent } from './top-layer-agent.js'
 import { MidLayerAgent } from './mid-layer-agent.js'
 import { BottomLayerAgent } from './bottom-layer-agent.js'
+
+/**
+ * Union type for all agent config types
+ */
+export type AnyAgentConfig = TopLayerAgentConfig | MidLayerAgentConfig | BottomLayerAgentConfig
 
 /**
  * Agent pool configuration
@@ -35,7 +45,7 @@ export class AgentPool {
   /**
    * Create a new agent
    */
-  async createAgent(config: AgentConfig): Promise<BaseAgent> {
+  async createAgent(config: AnyAgentConfig): Promise<BaseAgent> {
     if (this.agents.size >= this.maxAgents) {
       throw new Error(`Agent pool full (max ${this.maxAgents})`)
     }
@@ -45,8 +55,20 @@ export class AgentPool {
     }
 
     // Create appropriate agent type based on layer
-    const AgentClass = this.getAgentClass(config.layer)
-    const agent = new AgentClass(config as any, this.dependencies)
+    let agent: BaseAgent
+    switch (config.layer) {
+      case 'top':
+        agent = new TopLayerAgent(config as TopLayerAgentConfig, this.dependencies)
+        break
+      case 'mid':
+        agent = new MidLayerAgent(config as MidLayerAgentConfig, this.dependencies)
+        break
+      case 'bottom':
+        agent = new BottomLayerAgent(config as BottomLayerAgentConfig, this.dependencies)
+        break
+      default:
+        throw new Error(`Unknown layer: ${config.layer}`)
+    }
 
     // Initialize the agent
     await agent.initialize()
@@ -118,24 +140,6 @@ export class AgentPool {
     const agentIds = Array.from(this.agents.keys())
     for (const agentId of agentIds) {
       await this.destroyAgent(agentId)
-    }
-  }
-
-  /**
-   * Get agent class based on layer
-   */
-  private getAgentClass(
-    layer: AgentLayer
-  ): typeof TopLayerAgent | typeof MidLayerAgent | typeof BottomLayerAgent {
-    switch (layer) {
-      case 'top':
-        return TopLayerAgent
-      case 'mid':
-        return MidLayerAgent
-      case 'bottom':
-        return BottomLayerAgent
-      default:
-        throw new Error(`Unknown layer: ${layer}`)
     }
   }
 }

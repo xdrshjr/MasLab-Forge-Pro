@@ -8,7 +8,12 @@
 import { BaseAgent } from './base-agent.js'
 import { AgentStatus, MessageType } from '../types/index.js'
 import type { Message } from '../types/index.js'
-import type { BottomLayerAgentConfig, AgentDependencies, AgentTask } from './types.js'
+import type {
+  BottomLayerAgentConfig,
+  AgentDependencies,
+  AgentTask,
+  TaskExecutionResult,
+} from './types.js'
 
 /**
  * Bottom layer agent with execution capabilities
@@ -141,16 +146,22 @@ ${result.output}
   /**
    * Execute task with tools (placeholder for pi-coding-agent integration)
    */
-  private async executeWithTools(task: AgentTask): Promise<any> {
+  private async executeWithTools(task: AgentTask): Promise<TaskExecutionResult> {
     // Placeholder - will integrate with pi-coding-agent in Task 09
     console.log(`[${this.config.name}] Executing task with tools: ${this.tools.join(', ')}`)
+
+    // Track execution time
+    const startTime = Date.now()
 
     // Simulate task execution
     await new Promise((resolve) => setTimeout(resolve, 100))
 
+    const duration = Date.now() - startTime
+
     return {
       success: true,
       output: `Task "${task.description}" completed successfully`,
+      duration,
     }
   }
 
